@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHAOS ARENA DUO</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#070910;color:white;
+ font-family:Arial,sans-serif;overflow:hidden
+}
+#ui{
+ height:100vh;display:flex;flex-direction:column;
+ padding:10px;gap:8px
+}
+header{
+ display:flex;justify-content:space-between;
+ align-items:center
+}
+h2{margin:0}
+#info{font-size:14px}
+.controls{
+ display:flex;gap:10px
+}
+.panel{
+ flex:1;background:#121725;
+ padding:8px;border-radius:12px;
+ display:flex;justify-content:space-between;
+ align-items:center
+}
+button{
+ background:#222a3d;color:white;
+ border:1px solid #444;border-radius:8px;
+ padding:7px;cursor:pointer
+}
+button.active{background:#665cff}
+#arena{
+ flex:1;position:relative;
+ border:1px solid #333;border-radius:16px;
+ overflow:hidden
+}
+canvas{width:100%;height:100%;display:block}
+#overlay{
+ position:absolute;inset:0;background:#080b12dd;
+ display:flex;align-items:center;justify-content:center;
+ text-align:center
+}
+.card{
+ background:#121725;padding:30px;
+ border-radius:20px;max-width:500px
+}
+.big{
+ font-size:45px;font-weight:bold;
+ margin-bottom:15px
+}
+.start{
+ width:100%;padding:15px;
+ background:white;color:black;
+ font-weight:bold;font-size:17px
+}
+.hidden{display:none!important}
+</style>
+</head>
+
+<body>
+<div id="ui">
+
+<header>
+<h2>⚔ CHAOS ARENA DUO</h2>
+<div id="info">
+점수 <b id="score">0</b> |
+웨이브 <b id="wave">1</b>
+</div>
+</header>
+
+<div class="controls">
+
+<div class="panel">
+<div>
+<b style="color:#7c8cff">PLAYER 1</b><br>
+<small>WASD 이동 · F 공격</small><br>
+<span id="life1">♥♥♥</span>
+</div>
+<div>
+<button id="m1" class="active">⚔ 근거리</button>
+<button id="r1">➤ 원거리</button>
+</div>
+</div>
+
+<div class="panel">
+<div>
+<b style="color:#63e6be">PLAYER 2</b><br>
+<small>방향키 이동 · / 공격</small><br>
+<span id="life2">♥♥♥</span>
+</div>
+<div>
+<button id="m2" class="active">⚔ 근거리</button>
+<button id="r2">➤ 원거리</button>
+</div>
+</div>
+
+</div>
+
+<div id="arena">
+<canvas id="game"></canvas>
+
+<div id="overlay">
+<div class="card">
+<div class="big">CHAOS<br>ARENA</div>
+
+<p>
+둘이 같이 살아남아라.<br><br>
+
+🔵 P1 — WASD + F<br>
+🟢 P2 — 방향키 + /<br><br>
+
+⚔ 근거리 = 강한 공격 + 넉백<br>
+➤ 원거리 = 총알 발사<br><br>
+
+서로 공격하면 데미지는 없지만
+<strong>상대를 몬스터 쪽으로 날려버릴 수 있음.</strong>
+</p>
+
+<button class="start" id="start">
+게임 시작
+</button>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+const canvas=document.querySelector("#game");
+const ctx=canvas.getContext("2d");
+const arena=document.querySelector("#arena");
+
+let W,H;
+let running=false;
+let score=0;
+let wave=1;
+let time=0;
+
+const keys={};
+
+let enemies=[];
+let bullets=[];
+let particles=[];
+
+const players=[
+{
+ id:1,
+ x:200,y:200,
+ color:"#7c8cff",
+ keys:["a","d","w","s"],
+ attack:"f",
+ weapon:"melee",
+ life:3,
+ vx:0,vy:0,
+ fx:1,fy:0,
+ cool:0,
+ inv:0
+},
+{
+ id:2,
+ x:500,y:200,
+ color:"#63e6be",
+ keys:["arrowleft","arrowright","arrowup","arrowdown"],
+ attack:"/",
+ weapon:"melee",
+ life:3,
+ vx:0,vy:0,
+ fx:-1,fy:0,
+ cool:0,
+ inv:0
+}
+];
+
+function resize(){
+ const r=arena.getBoundingClientRect();
+ W=r.width;
+ H=r.height;
+
+ canvas.width=W*devicePixelRatio;
+ canvas.height=H*devicePixelRatio;
+
+ ctx.setTransform(
+ devicePixelRatio,0,0,
+ devicePixelRatio,0,0
+ );
+}
+
+new ResizeObserver(resize).observe(arena);
+
+document.addEventListener("keydown",e=>{
+ keys[e.key.toLowerCase()]=true;
+
+ players.forEach(p=>{
+  if(e.key.toLowerCase()===p.attack)
+   attack(p);
+ });
+
+ if(e.key.startsWith("Arrow"))
+  e.preventDefault();
+});
+
+document.addEventListener("keyup",e=>{
+ keys[e.key.toLowerCase()]=false;
+});
+
+function weapon(player,type){
+ player.weapon=type;
+}
+
+m1.onclick=()=>{
+ weapon(players[0],"melee");
+ m1.className="active";
+ r1.className="";
+};
+
+r1.onclick=()=>{
+ weapon(players[0],"range");
+ r1.className="active";
+ m1.className="";
+};
+
+m2.onclick=()=>{
+ weapon(players[1],"melee");
+ m2.className="active";
+ r2.className="";
+};
+
+r2.onclick=()=>{
+ weapon(players[1],"range");
+ r2.className="active";
+ m2.className="";
+};
+
+function attack(p){
+
+ if(!running||p.life<=0||p.cool>0)return;
+
+ if(p.weapon==="range"){
+
+  p.cool=.25;
+
+  bullets.push({
+   x:p.x,
+   y:p.y,
+   vx:p.fx*9,
+   vy:p.fy*9,
+   owner:p.id,
+   color:p.color
+  });
+
+ }else{
+
+  p.cool=.38;
+
+  enemies.forEach(e=>{
+
+   let dx=e.x-p.x;
+   let dy=e.y-p.y;
+   let d=Math.hypot(dx,dy);
+
+   let dot=
+   (dx*p.fx+dy*p.fy)/(d||1);
+
+   if(d<70&&dot>0){
+
+    e.hp-=2;
+
+    e.vx+=p.fx*6;
+    e.vy+=p.fy*6;
+   }
+  });
+
+  players.forEach(o=>{
+
+   if(o===p||o.life<=0)return;
+
+   let dx=o.x-p.x;
+   let dy=o.y-p.y;
+   let d=Math.hypot(dx,dy);
+
+   let dot=
+   (dx*p.fx+dy*p.fy)/(d||1);
+
+   if(d<70&&dot>0){
+
+    o.vx+=p.fx*12;
+    o.vy+=p.fy*12;
+   }
+  });
+ }
+}
+
+function spawn(){
+
+ let side=Math.floor(Math.random()*4);
+
+ let x,y;
+
+ if(side===0){x=-30;y=Math.random()*H}
+ if(side===1){x=W+30;y=Math.random()*H}
+ if(side===2){x=Math.random()*W;y=-30}
+ if(side===3){x=Math.random()*W;y=H+30}
+
+ let rnd=Math.random();
+
+ let type="runner";
+
+ if(wave>=2&&rnd>.55)type="tank";
+ if(wave>=3&&rnd>.78)type="shooter";
+ if(wave>=5&&rnd>.91)type="splitter";
+
+ let stats={};
+
+ if(type==="runner")
+ stats={r:10,hp:1,speed:2.4,color:"#ff5277"};
+
+ if(type==="tank")
+ stats={r:20,hp:6,speed:.9,color:"#ffd166"};
+
+ if(type==="shooter")
+ stats={r:14,hp:3,speed:1.3,color:"#b47cff"};
+
+ if(type==="splitter")
+ stats={r:16,hp:4,speed:1.5,color:"#ff9f68"};
+
+ enemies.push({
+ x,y,
+ vx:0,vy:0,
+ ...stats,
+ maxhp:stats.hp,
+ type,
+ shoot:100
+ });
+}
+
+function hurt(p,x,y){
+
+ if(p.inv>0||p.life<=0)return;
+
+ p.life--;
+ p.inv=1.2;
+
+ let a=Math.atan2(p.y-y,p.x-x);
+
+ p.vx+=Math.cos(a)*10;
+ p.vy+=Math.sin(a)*10;
+
+ updateUI();
+
+ if(players.every(p=>p.life<=0))
+ gameOver();
+}
+
+function updateUI(){
+
+ scoreEl=document.querySelector("#score");
+ scoreEl.innerText=Math.floor(score);
+
+ document.querySelector("#wave").innerText=wave;
+
+ life1.innerText=
+ "♥".repeat(players[0].life)+
+ "♡".repeat(3-players[0].life);
+
+ life2.innerText=
+ "♥".repeat(players[1].life)+
+ "♡".repeat(3-players[1].life);
+}
+
+function update(dt){
+
+ time+=dt;
+
+ wave=1+Math.floor(time/16);
+
+ players.forEach(p=>{
+
+  p.cool=Math.max(0,p.cool-dt);
+  p.inv=Math.max(0,p.inv-dt);
+
+  if(p.life<=0)return;
+
+  let dx=0,dy=0;
+
+  if(keys[p.keys[0]])dx--;
+  if(keys[p.keys[1]])dx++;
+  if(keys[p.keys[2]])dy--;
+  if(keys[p.keys[3]])dy++;
+
+  if(dx||dy){
+
+   let l=Math.hypot(dx,dy);
+
+   dx/=l;
+   dy/=l;
+
+   p.fx=dx;
+   p.fy=dy;
+
+   p.vx+=dx*.8;
+   p.vy+=dy*.8;
+  }
+
+  p.vx*=.82;
+  p.vy*=.82;
+
+  p.x+=p.vx*60*dt;
+  p.y+=p.vy*60*dt;
+
+  p.x=Math.max(15,Math.min(W-15,p.x));
+  p.y=Math.max(15,Math.min(H-15,p.y));
+ });
+
+ if(Math.random()<(.025+wave*.003))
+ spawn();
+
+ enemies.forEach(e=>{
+
+  let alive=
+  players.filter(p=>p.life>0);
+
+  if(!alive.length)return;
+
+  let target=alive.sort(
+   (a,b)=>
+   Math.hypot(a.x-e.x,a.y-e.y)-
+   Math.hypot(b.x-e.x,b.y-e.y)
+  )[0];
+
+  let a=Math.atan2(
+   target.y-e.y,
+   target.x-e.x
+  );
+
+  e.vx+=Math.cos(a)*e.speed*.08;
+  e.vy+=Math.sin(a)*e.speed*.08;
+
+  e.vx*=.94;
+  e.vy*=.94;
+
+  e.x+=e.vx*60*dt;
+  e.y+=e.vy*60*dt;
+
+  players.forEach(p=>{
+
+   if(
+    p.life>0&&
+    Math.hypot(
+     p.x-e.x,
+     p.y-e.y
+    )<15+e.r
+   ){
+    hurt(p,e.x,e.y);
+   }
+  });
+ });
+
+ bullets.forEach(b=>{
+
+  b.x+=b.vx*60*dt;
+  b.y+=b.vy*60*dt;
+
+  enemies.forEach(e=>{
+
+   if(
+    Math.hypot(
+     e.x-b.x,
+     e.y-b.y
+    )<e.r+5
+   ){
+    e.hp--;
+    b.dead=true;
+
+    e.vx+=b.vx*.4;
+    e.vy+=b.vy*.4;
+   }
+  });
+
+  players.forEach(p=>{
+
+   if(
+    p.id!==b.owner&&
+    p.life>0&&
+    Math.hypot(
+     p.x-b.x,
+     p.y-b.y
+    )<20
+   ){
+    p.vx+=b.vx*.8;
+    p.vy+=b.vy*.8;
+    b.dead=true;
+   }
+  });
+ });
+
+ bullets=bullets.filter(
+ b=>
+ !b.dead&&
+ b.x>-20&&b.x<W+20&&
+ b.y>-20&&b.y<H+20
+ );
+
+ enemies.forEach(e=>{
+
+  if(e.hp<=0){
+
+   e.dead=true;
+
+   score+=
+   e.type==="tank"?80:
+   e.type==="shooter"?60:
+   e.type==="splitter"?100:
+   30;
+
+   if(e.type==="splitter"){
+
+    for(let i=0;i<3;i++){
+
+     enemies.push({
+      x:e.x,
+      y:e.y,
+      vx:(Math.random()-.5)*5,
+      vy:(Math.random()-.5)*5,
+      r:7,
+      hp:1,
+      maxhp:1,
+      speed:3,
+      color:"#ff9f68",
+      type:"runner"
+     });
+    }
+   }
+  }
+ });
+
+ enemies=enemies.filter(e=>!e.dead);
+
+ score+=dt*(5+wave);
+
+ updateUI();
+}
+
+function draw(){
+
+ ctx.clearRect(0,0,W,H);
+
+ enemies.forEach(e=>{
+
+  ctx.beginPath();
+  ctx.arc(
+   e.x,e.y,e.r,
+   0,Math.PI*2
+  );
+
+  ctx.fillStyle=e.color;
+  ctx.fill();
+
+  if(e.maxhp>1){
+
+   ctx.fillStyle="#333";
+
+   ctx.fillRect(
+    e.x-e.r,
+    e.y-e.r-9,
+    e.r*2,
+    3
+   );
+
+   ctx.fillStyle="white";
+
+   ctx.fillRect(
+    e.x-e.r,
+    e.y-e.r-9,
+    e.r*2*(e.hp/e.maxhp),
+    3
+   );
+  }
+ });
+
+ bullets.forEach(b=>{
+
+  ctx.beginPath();
+
+  ctx.arc(
+   b.x,b.y,5,
+   0,Math.PI*2
+  );
+
+  ctx.fillStyle=b.color;
+  ctx.fill();
+ });
+
+ players.forEach(p=>{
+
+  if(p.life<=0)return;
+
+  ctx.globalAlpha=
+  p.inv>0&&
+  Math.floor(p.inv*12)%2===0
+  ?.3:1;
+
+  ctx.beginPath();
+
+  ctx.arc(
+   p.x,p.y,15,
+   0,Math.PI*2
+  );
+
+  ctx.fillStyle=p.color;
+  ctx.fill();
+
+  ctx.strokeStyle="white";
+  ctx.lineWidth=3;
+
+  ctx.beginPath();
+
+  ctx.moveTo(p.x,p.y);
+
+  ctx.lineTo(
+   p.x+p.fx*22,
+   p.y+p.fy*22
+  );
+
+  ctx.stroke();
+
+  ctx.globalAlpha=1;
+
+  ctx.fillStyle="white";
+  ctx.font="bold 11px Arial";
+  ctx.textAlign="center";
+
+  ctx.fillText(
+   "P"+p.id,
+   p.x,
+   p.y-23
+  );
+ });
+}
+
+let last=0;
+
+function loop(t){
+
+ if(!running)return;
+
+ let dt=Math.min(
+ (t-last)/1000,
+ .03
+ );
+
+ last=t;
+
+ update(dt);
+ draw();
+
+ requestAnimationFrame(loop);
+}
+
+function startGame(){
+
+ players[0].life=3;
+ players[1].life=3;
+
+ players[0].x=W*.3;
+ players[1].x=W*.7;
+
+ players[0].y=
+ players[1].y=
+ H*.5;
+
+ enemies=[];
+ bullets=[];
+
+ score=0;
+ time=0;
+ wave=1;
+
+ overlay.classList.add("hidden");
+
+ running=true;
+
+ updateUI();
+
+ last=performance.now();
+
+ requestAnimationFrame(loop);
+}
+
+function gameOver(){
+
+ running=false;
+
+ document.querySelector(
+ "#overlay"
+ ).classList.remove("hidden");
+
+ document.querySelector(
+ ".big"
+ ).innerHTML=
+ "GAME<br>OVER";
+
+ document.querySelector(
+ ".card p"
+ ).innerHTML=
+ `최종 점수 <b>${Math.floor(score)}</b><br>
+ 웨이브 <b>${wave}</b><br><br>
+ 한 판 더?`;
+
+ start.innerText="다시 시작";
+}
+
+start.onclick=startGame;
+
+resize();
+updateUI();
+</script>
+</body>
+</html>
