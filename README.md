@@ -1,18 +1,16 @@
-# swy779 Portfolio
+# CHAOS DODGE
 
-GitHub Pages용 개인 포트폴리오 사이트입니다.
+아이패드, 모바일, 데스크톱에서 플레이할 수 있는 1파일 미니게임입니다.
 
-## 파일
-- `index.html` — 사이트 내용
-- `style.css` — 디자인
-- `script.js` — 모바일 메뉴와 연도 표시
+## GitHub Pages에 넣기
+1. `game.html` 파일을 `swy779.github.io` 저장소 최상위에 업로드하세요.
+2. `https://swy779.github.io/game.html` 로 접속하면 플레이할 수 있습니다.
+3. 기존 포트폴리오 `index.html`에 아래 링크를 추가하면 됩니다.
 
-## GitHub Pages에 올리는 방법
-1. GitHub에서 `swy779.github.io` 저장소를 엽니다.
-2. 기존 파일이 있다면 백업하거나 교체합니다.
-3. 이 폴더의 `index.html`, `style.css`, `script.js`를 저장소 최상위(root)에 업로드합니다.
-4. Commit changes를 누릅니다.
-5. 잠시 후 `https://swy779.github.io`에서 확인합니다.
+```html
+<a href="game.html">미니게임 플레이 →</a>
+```
 
-## 수정하기
-`index.html`에서 소개 문구, 프로젝트, 기술 목록과 GitHub 링크를 원하는 내용으로 변경하면 됩니다.
+조작:
+- iPad / 모바일: 손가락으로 드래그
+- 데스크톱: 마우스 이동 또는 방향키/WASD
