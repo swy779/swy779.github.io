@@ -1,1 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="swy779의 개인 포트폴리오 사이트" />
+  <title>swy779 | Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="#home">SWY<span>.</span></a>
 
+    <button class="menu-button" aria-label="메뉴 열기" aria-expanded="false">
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav class="nav">
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#skills">Skills</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-copy">
+        <p class="eyebrow">HELLO, I'M SWY779</p>
+        <h1>
+          생각을<br />
+          <span>멋진 결과물</span>로 만듭니다.
+        </h1>
+        <p class="hero-description">
+          새로운 기술을 배우고, 직접 만들고, 개선하는 과정을 좋아합니다.
+          이곳은 제가 만든 프로젝트와 성장 과정을 기록하는 개인 포트폴리오입니다.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#projects">프로젝트 보기</a>
+          <a class="button secondary" href="#contact">연락하기</a>
+        </div>
+      </div>
+
+      <div class="hero-card" aria-hidden="true">
+        <div class="orb orb-one"></div>
+        <div class="orb orb-two"></div>
+        <div class="code-window">
+          <div class="window-dots"><span></span><span></span><span></span></div>
+          <pre><code><span class="code-muted">// portfolio.js</span>
+
+<span class="code-keyword">const</span> creator = {
+  name: <span class="code-string">"swy779"</span>,
+  passion: [
+    <span class="code-string">"Build"</span>,
+    <span class="code-string">"Learn"</span>,
+    <span class="code-string">"Create"</span>
+  ],
+  status: <span class="code-string">"Growing every day"</span>
+};</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="section-heading">
+        <p class="section-number">01</p>
+        <h2>About me</h2>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-text">
+          <h3>안녕하세요, swy779입니다.</h3>
+          <p>
+            아이디어를 실제로 구현하는 것을 좋아합니다. 웹, 프로그래밍,
+            디자인 등 다양한 분야를 탐색하며 새로운 프로젝트를 만들어가고 있습니다.
+          </p>
+          <p>
+            단순히 작동하는 결과물보다, 사람들이 편하게 사용할 수 있고
+            오래 기억할 수 있는 경험을 만드는 것이 목표입니다.
+          </p>
+        </div>
+
+        <div class="stats">
+          <article class="stat-card">
+            <strong>01+</strong>
+            <span>Projects</span>
+          </article>
+          <article class="stat-card">
+            <strong>∞</strong>
+            <span>Ideas</span>
+          </article>
+          <article class="stat-card">
+            <strong>100%</strong>
+            <span>Curiosity</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="projects">
+      <div class="section-heading">
+        <p class="section-number">02</p>
+        <h2>Selected projects</h2>
+      </div>
+
+      <div class="project-grid">
+        <article class="project-card featured">
+          <div class="project-visual gradient-one">
+            <span>PROJECT 01</span>
+          </div>
+          <div class="project-content">
+            <p class="project-type">WEB PROJECT</p>
+            <h3>My Portfolio</h3>
+            <p>
+              GitHub Pages로 직접 배포한 개인 포트폴리오 사이트입니다.
+              반응형 디자인과 깔끔한 인터랙션을 적용했습니다.
+            </p>
+            <div class="tags">
+              <span>HTML</span><span>CSS</span><span>JavaScript</span>
+            </div>
+            <a href="https://swy779.github.io" target="_blank" rel="noreferrer">사이트 보기 ↗</a>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-visual gradient-two">
+            <span>PROJECT 02</span>
+          </div>
+          <div class="project-content">
+            <p class="project-type">COMING SOON</p>
+            <h3>Next Project</h3>
+            <p>다음 프로젝트를 이곳에 추가해 보세요.</p>
+            <div class="tags">
+              <span>Idea</span><span>Build</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-visual gradient-three">
+            <span>PROJECT 03</span>
+          </div>
+          <div class="project-content">
+            <p class="project-type">COMING SOON</p>
+            <h3>Another Idea</h3>
+            <p>새로운 작업, 공부 기록, 앱 등을 자유롭게 소개할 수 있습니다.</p>
+            <div class="tags">
+              <span>Create</span><span>Explore</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="skills">
+      <div class="section-heading">
+        <p class="section-number">03</p>
+        <h2>Skills & interests</h2>
+      </div>
+
+      <div class="skill-list">
+        <div class="skill-row"><span>Web Development</span><strong>HTML · CSS · JS</strong></div>
+        <div class="skill-row"><span>Programming</span><strong>Learning & Building</strong></div>
+        <div class="skill-row"><span>Design</span><strong>UI · UX · Visual</strong></div>
+        <div class="skill-row"><span>Tools</span><strong>GitHub · GitHub Pages</strong></div>
+      </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <p class="eyebrow">LET'S CONNECT</p>
+      <h2>함께 재미있는 걸<br />만들어 볼까요?</h2>
+      <p>
+        프로젝트 제안, 협업, 또는 그냥 인사를 건네고 싶다면
+        GitHub를 통해 연락해 주세요.
+      </p>
+      <div class="contact-actions">
+        <a class="button primary" href="https://github.com/swy779" target="_blank" rel="noreferrer">GitHub 방문하기 ↗</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> swy779. Built with curiosity.</p>
+    <a href="#home">Back to top ↑</a>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
